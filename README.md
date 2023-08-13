@@ -1,2 +1,3 @@
 # httpserver
-An Educational Python HTTP Implementation
+
+A Python HTTP Server implementation made for educational purposes.
