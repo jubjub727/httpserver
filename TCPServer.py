@@ -33,6 +33,12 @@ class HTTPMessage:
             else:
                 self.unknownList.append(line)
 
+    def GetPath():
+        pass
+
+    def GetType():
+        pass
+
     def __init__(self, packet, writer):
         self.writer = writer  # Take in writer for sending response
         self.packet = packet
