@@ -61,7 +61,7 @@ class TCPServer:
         httpMessage = HTTPMessage(
             packet, writer
         )  # Create HTTPMessage class to parse packet
-        requstHandler(httpMessage)
+        requestHandler(httpMessage)
 
     async def listenInternal(self):
         server = await asyncio.start_server(self.handler, self.ip, self.port)
