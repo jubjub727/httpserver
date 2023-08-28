@@ -4,9 +4,10 @@ from .TCPServer import TCPServer
 
 class HTTPRequest:
     _responseWriter = None
+    _httpMessage = None
 
     def __init__(self, httpMessage):
-        pass
+        self._httpMessage = httpMessage
 
 
 class RegisteredPath:
@@ -55,9 +56,8 @@ class Server:
         self._registeredPaths.append(registeredPath)
 
     def RequestHandler(self, httpMessage):
-        print(httpMessage.argument)
         for registeredPath in self._registeredPaths:
-            # if registeredPath.GetType() == httpMessage.GetType():
-            if MatchPath(registeredPath.GetPath(), httpMessage.GetPath()):
-                httpRequest = HTTPRequest(httpMessage)
-                registeredPath.Execute(httpRequest)
+            if registeredPath.GetType() == httpMessage.GetType():
+                if MatchPath(registeredPath.GetPath(), httpMessage.GetPath()):
+                    httpRequest = HTTPRequest(httpMessage)
+                    registeredPath.Execute(httpRequest)

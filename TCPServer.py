@@ -57,7 +57,7 @@ class TCPServer:
         self.numberOfBytes = numberOfBytes
 
     async def handler(self, reader, writer):
-        packet = await reader.read(self.numberofbytes)
+        packet = await reader.read(self.numberOfBytes)
         httpMessage = HTTPMessage(
             packet, writer
         )  # Create HTTPMessage class to parse packet
