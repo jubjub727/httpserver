@@ -1,4 +1,5 @@
 from .enums import RequestType
+from .TCPServer import TCPServer
 
 
 class HTTPRequest:
@@ -37,23 +38,26 @@ def MatchPath(path1, path2):
 class Server:
     _ipAddress = None
     _port = None
+    _tcpServer = None
 
     _registeredPaths = []
 
-    def __init__(self, ipAddress="127.0.0.1", port=80):
+    def __init__(self, port=80, ipAddress="127.0.0.1"):
         self._ipAddress = ipAddress
         self._port = port
+        self._tcpServer = TCPServer(self._port, self._ipAddress, -1)
 
     def Listen(self):
-        pass
+        self._tcpServer.Listen(self.RequestHandler)
 
     def Register(self, path, requestType, func):
         registeredPath = RegisteredPath(path, requestType, func)
         self._registeredPaths.append(registeredPath)
 
     def RequestHandler(self, httpMessage):
+        print(httpMessage.argument)
         for registeredPath in self._registeredPaths:
-            if registeredPath.GetType() == httpMessage.GetType():
-                if MatchPath(registeredPath.GetPath(), httpMessage.GetPath()):
-                    httpRequest = HTTPRequest(httpMessage)
-                    registeredPath.Execute(httpRequest)
+            # if registeredPath.GetType() == httpMessage.GetType():
+            if MatchPath(registeredPath.GetPath(), httpMessage.GetPath()):
+                httpRequest = HTTPRequest(httpMessage)
+                registeredPath.Execute(httpRequest)
