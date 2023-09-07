@@ -8,10 +8,11 @@ class HTTPMessage:
     host = None
     tcpAddress = None
     contentLength = None
+    userAgent = None
     path = None
     type = None
     version = None
-    unhandledList = []
+    unhandledHeaders = {}
 
     def parseHeader(self, line):
         delimLocation = line.find(":")
@@ -19,17 +20,17 @@ class HTTPMessage:
         value = line[delimLocation + 1 :]
 
         if value[0] == " ":
-            value = value[
-                1:
-            ]  # Checks for and removes the optional trailing space (https://datatracker.ietf.org/doc/html/rfc9112#name-field-syntax)
+            value = value[1:]  # Checks for and removes the optional trailing space (https://datatracker.ietf.org/doc/html/rfc9112#name-field-syntax)
 
         match header:
             case "Host":
-                self.host == value
+                self.host = value
             case "Content-Length":
-                self.contentLength == value
+                self.contentLength = value
+            case "User-Agent":
+                self.userAgent = value
             case _:
-                self.unhandledList.append(line)
+                self.unhandledHeaders[header] = value
 
     async def readLine(self):
         data = await self.reader.readline()
