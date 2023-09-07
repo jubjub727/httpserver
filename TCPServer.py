@@ -2,7 +2,7 @@ import asyncio
 from .enums import RequestType
 
 
-class HTTPMessage():
+class HTTPMessage:
     reader = None
     writer = None
     host = None
@@ -16,11 +16,13 @@ class HTTPMessage():
     def parseHeader(self, line):
         delimLocation = line.find(":")
         header = line[:delimLocation]
-        value = line[delimLocation+1:]
+        value = line[delimLocation + 1 :]
 
         if value[0] == " ":
-            value = value[1:] # Checks for and removes the optional trailing space (https://datatracker.ietf.org/doc/html/rfc9112#name-field-syntax)
-        
+            value = value[
+                1:
+            ]  # Checks for and removes the optional trailing space (https://datatracker.ietf.org/doc/html/rfc9112#name-field-syntax)
+
         match header:
             case "Host":
                 self.host == value
@@ -28,8 +30,6 @@ class HTTPMessage():
                 self.contentLength == value
             case _:
                 self.unhandledList.append(line)
-        
-
 
     async def readLine(self):
         data = await self.reader.readline()
@@ -37,16 +37,16 @@ class HTTPMessage():
         if line[-2] == "\r":
             line = line[:-2]
         return line
-    
+
     # Parse HTTPMessage into class variables
     async def parse(self):
         startLine = await self.readLine()
         options = startLine.split(" ")
 
         if len(options) != 3:
-            self.writer.close() # We close the connection because it's not a valid HTTP Message
+            self.writer.close()  # We close the connection because it's not a valid HTTP Message
             return
-        
+
         self.type = options[0]
         self.path = options[1]
         self.verison = options[2]
@@ -59,7 +59,7 @@ class HTTPMessage():
             if line == "":
                 completed = True
                 break
-            
+
             self.parseHeader(line)
 
     def GetPath(self):
@@ -74,7 +74,7 @@ class HTTPMessage():
         self.tcpAddress = writer.get_extra_info("peername")
 
 
-class TCPServer():
+class TCPServer:
     port = None
     ip = None
     numberOfBytes = None  # Amount of bytes read by read function
@@ -86,12 +86,13 @@ class TCPServer():
         self.numberOfBytes = numberOfBytes
 
     async def handler(self, reader, writer):
-        httpMessage = HTTPMessage(reader, writer)  # Create HTTPMessage class to parse packet
-        
+        httpMessage = HTTPMessage(
+            reader, writer
+        )  # Create HTTPMessage class to parse packet
+
         await httpMessage.parse()
-        
-        #self.requestHandler(httpMessage)
-        writer.close()
+
+        self.requestHandler(httpMessage)
 
     async def listenInternal(self):
         server = await asyncio.start_server(self.handler, self.ip, self.port)
