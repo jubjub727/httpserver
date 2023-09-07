@@ -12,8 +12,8 @@ class HTTPRequest:
         self._writer = httpMessage.writer
         self._tcpServer = tcpServer
 
-    def Reply(self, httpResponse):
-        self._tcpServer.Reply(httpResponse, self._writer)
+    async def Reply(self, httpResponse):
+        await self._tcpServer.Reply(httpResponse, self._writer)
 
 
 class RegisteredPath:
@@ -26,8 +26,8 @@ class RegisteredPath:
         self._requestType = requestType
         self._func = func
 
-    def Execute(self, httpRequest):
-        self._func(httpRequest)
+    async def Execute(self, httpRequest):
+        await self._func(httpRequest)
 
     def GetPath(self):
         return self._path
@@ -64,10 +64,10 @@ class Server:
         registeredPath = RegisteredPath(path, requestType, func)
         self._registeredPaths.append(registeredPath)
 
-    def RequestHandler(self, httpMessage):
+    async def RequestHandler(self, httpMessage):
         for registeredPath in self._registeredPaths:
             if registeredPath.GetType() == httpMessage.type:
                 if MatchPath(registeredPath.GetPath(), httpMessage.path):
                     httpRequest = HTTPRequest(httpMessage, self._tcpServer)
-                    registeredPath.Execute(httpRequest)
+                    await registeredPath.Execute(httpRequest)
                     return

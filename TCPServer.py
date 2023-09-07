@@ -1,5 +1,6 @@
 import asyncio
 from .enums import RequestType
+from .HTTPResponse import HTTPResponse
 
 
 class HTTPMessage:
@@ -102,7 +103,7 @@ class TCPServer:
 
         await httpMessage.parse()
 
-        self.requestHandler(httpMessage)
+        await self.requestHandler(httpMessage)
 
     async def listenInternal(self):
         server = await asyncio.start_server(self.handler, self.ip, self.port)
@@ -114,3 +115,27 @@ class TCPServer:
     def Listen(self, requestHandler):
         self.requestHandler = requestHandler
         asyncio.run(self.listenInternal())
+    
+    async def Reply(self, response, writer):
+        version = "HTTP/1.1"
+        reason = "OK"
+        crf = "\r\n"
+        contentHeader = "Content-Type: "
+    
+        if response.reason != None:
+            reason = response.reason
+
+        packet = version + " " + str(response.code) + " " + reason + crf
+
+        packet += contentHeader + response.contentType + crf
+
+        for header, value in response.headers:
+            packet += header + value + crf
+
+        packet += crf
+
+        packet += response.message
+        
+        writer.write(packet.encode())
+        await writer.drain()
+        writer.close()
