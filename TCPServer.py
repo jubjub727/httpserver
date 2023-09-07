@@ -21,7 +21,9 @@ class HTTPMessage:
         value = line[delimLocation + 1 :]
 
         if value[0] == " ":
-            value = value[1:]  # Checks for and removes the optional trailing space (https://datatracker.ietf.org/doc/html/rfc9112#name-field-syntax)
+            value = value[
+                1:
+            ]  # Checks for and removes the optional trailing space (https://datatracker.ietf.org/doc/html/rfc9112#name-field-syntax)
 
         match header:
             case "Host":
@@ -58,7 +60,7 @@ class HTTPMessage:
                 self.type = RequestType.PUT
             case _:
                 self.type = RequestType.UNKNOWN
-        
+
         self.path = options[1]
         self.verison = options[2]
 
@@ -115,13 +117,13 @@ class TCPServer:
     def Listen(self, requestHandler):
         self.requestHandler = requestHandler
         asyncio.run(self.listenInternal())
-    
+
     async def Reply(self, response, writer):
         version = "HTTP/1.1"
         reason = "OK"
         crf = "\r\n"
         contentHeader = "Content-Type: "
-    
+
         if response.reason != None:
             reason = response.reason
 
@@ -135,7 +137,7 @@ class TCPServer:
         packet += crf
 
         packet += response.message
-        
+
         writer.write(packet.encode())
         await writer.drain()
         writer.close()
