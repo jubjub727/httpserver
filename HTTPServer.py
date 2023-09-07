@@ -66,8 +66,8 @@ class Server:
 
     def RequestHandler(self, httpMessage):
         for registeredPath in self._registeredPaths:
-            if registeredPath.GetType() == httpMessage.path:
-                if MatchPath(registeredPath.GetPath(), httpMessage.GetPath()):
+            if registeredPath.GetType() == httpMessage.type:
+                if MatchPath(registeredPath.GetPath(), httpMessage.path):
                     httpRequest = HTTPRequest(httpMessage, self._tcpServer)
                     registeredPath.Execute(httpRequest)
                     return
