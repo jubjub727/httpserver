@@ -32,7 +32,10 @@ class RegisteredPath:
 
 # TODO: Implement Less Rigid Path Matching
 def MatchPath(path1, path2):
-    if path1.path == path2.path:
+    if path1 == "" or path1 == "/":
+        if path2 == "" or path2 == "/":
+            return True
+    elif path1 == path2:
         return True
 
 
@@ -61,3 +64,4 @@ class Server:
                 if MatchPath(registeredPath.GetPath(), httpMessage.GetPath()):
                     httpRequest = HTTPRequest(httpMessage)
                     registeredPath.Execute(httpRequest)
+                    return
