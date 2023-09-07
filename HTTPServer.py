@@ -3,11 +3,17 @@ from .TCPServer import TCPServer
 
 
 class HTTPRequest:
-    _responseWriter = None
-    _httpMessage = None
+    _tcpServer = None
+    _writer = None
+    message = None
 
-    def __init__(self, httpMessage):
-        self._httpMessage = httpMessage
+    def __init__(self, httpMessage, tcpServer):
+        self.message = httpMessage
+        self._writer = httpMessage.writer
+        self._tcpServer = tcpServer
+
+    def Reply(self, httpResponse):
+        self._tcpServer.Reply(httpResponse, self._writer)
 
 
 class RegisteredPath:
@@ -62,6 +68,6 @@ class Server:
         for registeredPath in self._registeredPaths:
             if registeredPath.GetType() == httpMessage.path:
                 if MatchPath(registeredPath.GetPath(), httpMessage.GetPath()):
-                    httpRequest = HTTPRequest(httpMessage)
+                    httpRequest = HTTPRequest(httpMessage, self._tcpServer)
                     registeredPath.Execute(httpRequest)
                     return
