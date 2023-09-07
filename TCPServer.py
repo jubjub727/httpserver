@@ -1,35 +1,66 @@
 import asyncio
+from .enums import RequestType
 
 
 class HTTPMessage():
-    # Preassign variables
-    packet = None
+    reader = None
     writer = None
-    message = None
-    sections = None
     host = None
-    argument = None
-    requestType = None
-    unknownList = []
+    tcpAddress = None
+    contentLength = None
+    path = None
+    type = None
+    version = None
+    unhandledList = []
 
+    def parseHeader(self, line):
+        delimLocation = line.find(":")
+        header = line[:delimLocation]
+        value = line[delimLocation+1:]
+
+        if value[0] == " ":
+            value = value[1:] # Checks for and removes the optional trailing space (https://datatracker.ietf.org/doc/html/rfc9112#name-field-syntax)
+        
+        match header:
+            case "Host":
+                self.host == value
+            case "Content-Length":
+                self.contentLength == value
+            case _:
+                self.unhandledList.append(line)
+        
+
+
+    async def readLine(self):
+        data = await self.reader.readline()
+        line = data.decode()
+        if line[-2] == "\r":
+            line = line[:-2]
+        return line
+    
     # Parse HTTPMessage into class variables
-    def parse(self):
-        self.message = self.packet.decode()
-        self.lines = self.message.split("\r\n")  # Put each line into a list
-        for line in self.lines:
-            if line.__contains__("GET"):
-                self.path = line.replace("GET", "")
-                self.requestType = "GET"
-            elif line.__contains__(": "):  # The request is the only part without a colon
-                typePos = 0  # The first item in the split string would be the type
-                dataPos = 1  # The other item would be the data
-                lineParts = line.split(": ")
-                if lineParts[typePos] == "Host":
-                    self.host = lineParts[dataPos]
-                else:
-                    self.unknownList.append(line)
-            else:
-                self.unknownList.append(line)
+    async def parse(self):
+        startLine = await self.readLine()
+        options = startLine.split(" ")
+
+        if len(options) != 3:
+            self.writer.close() # We close the connection because it's not a valid HTTP Message
+            return
+        
+        self.type = options[0]
+        self.path = options[1]
+        self.verison = options[2]
+
+        completed = False
+
+        while not completed:
+            line = await self.readLine()
+
+            if line == "":
+                completed = True
+                break
+            
+            self.parseHeader(line)
 
     def GetPath(self):
         return self.path
@@ -37,10 +68,10 @@ class HTTPMessage():
     def GetType(self):
         return self.requestType
 
-    def __init__(self, packet, writer):
+    def __init__(self, reader, writer):
         self.writer = writer  # Take in writer for sending response
-        self.packet = packet
-        self.parse()
+        self.reader = reader
+        self.tcpAddress = writer.get_extra_info("peername")
 
 
 class TCPServer():
@@ -55,9 +86,12 @@ class TCPServer():
         self.numberOfBytes = numberOfBytes
 
     async def handler(self, reader, writer):
-        packet = await reader.read(self.numberOfBytes)
-        httpMessage = HTTPMessage(packet, writer)  # Create HTTPMessage class to parse packet
-        self.requestHandler(httpMessage)
+        httpMessage = HTTPMessage(reader, writer)  # Create HTTPMessage class to parse packet
+        
+        await httpMessage.parse()
+        
+        #self.requestHandler(httpMessage)
+        writer.close()
 
     async def listenInternal(self):
         server = await asyncio.start_server(self.handler, self.ip, self.port)
