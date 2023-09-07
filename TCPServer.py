@@ -47,7 +47,16 @@ class HTTPMessage:
             self.writer.close()  # We close the connection because it's not a valid HTTP Message
             return
 
-        self.type = options[0]
+        match options[0]:
+            case "GET":
+                self.type = RequestType.GET
+            case "POST":
+                self.type = RequestType.POST
+            case "PUT":
+                self.type = RequestType.PUT
+            case _:
+                self.type = RequestType.UNKNOWN
+        
         self.path = options[1]
         self.verison = options[2]
 
